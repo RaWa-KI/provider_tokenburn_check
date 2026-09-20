@@ -1,0 +1,82 @@
+# Token-Burn- / Quota-Erstprüfung (read-only)
+schema_version: 1
+id: token-burn-audit
+mode: read_only
+language: de
+
+intent: >
+  Lokale AI-Coding-Einstellungen und Gewohnheiten finden, die über Turns
+  hinweg wiederholten großen Kontext- und Cache-Read-Verbrauch verursachen
+  (Quota- / Rate-Limit-Druck).
+
+hard_rules:
+  - no_config_edits
+  - no_billing_or_account_changes
+  - no_secrets_in_output
+  - no_invented_config_keys
+  - prefer_live_files_and_official_docs
+  - use_tilde_paths_in_reports
+
+tools_to_consider:
+  - claude-code
+  - codex
+  - cursor
+  - github-copilot-chat
+  - gemini-cli
+  - grok
+  - kimi-code
+  - opencode
+  - continue
+  - aider
+
+heuristics:
+  auto_compact_before_pct_of_window:
+    warn_above: 0.80
+    target_near: 0.45
+  prefill_capped: true
+  parallelism_capped: true
+  expensive_effort_not_global_default: true
+  explicit_budget_if_supported: true
+
+inventory_controls:
+  - auto_compaction
+  - prefill_or_project_doc_caps
+  - parallelism_caps
+  - effort_or_thinking_defaults
+  - run_goal_or_session_budgets
+  - startup_mcp_plugins_skills
+
+root_causes:
+  prefill_and_startup:
+    - large_always_loaded_instruction_files
+    - duplicate_always_on_policies
+    - huge_skill_plugin_mcp_catalog_prefill
+    - many_enabled_mcp_servers
+  session_behavior:
+    - long_lived_sessions_without_reset
+    - high_tool_loop_density_large_outputs
+    - repeated_full_file_or_doc_reads
+    - subagent_swarms_rebuilding_fat_context
+    - no_manual_compact_or_new_session
+  model_and_provider_traps:
+    - huge_context_without_early_compaction
+    - mid_session_model_or_effort_switch_breaks_cache
+    - max_context_model_with_late_compaction_default
+    - thinking_left_high_for_routine_edits
+  tooling_and_automation:
+    - background_agents_or_watchers_still_spending
+    - unbounded_retries_or_smoke_loops
+    - full_web_or_doc_fetches_pasted_into_chat
+  measurement_gaps:
+    - context_pct_confused_with_quota_balance
+    - cache_reads_treated_as_free
+    - no_session_signals_checked
+
+report_required:
+  - executive_summary
+  - controls_table  # tool, control, live, heuristic, status, evidence
+  - root_causes_yes_or_unknown
+  - top_5_fixes_recommendations_only
+  - not_verified
+
+status_enum: [OK, DRIFT, UNKNOWN, N/A]
