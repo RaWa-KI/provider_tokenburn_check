@@ -13,9 +13,8 @@ Clean-Room-Paket für eine **read-only**-Erstprüfung lokaler AI-Coding-Tools
 | [`en/`](en/) | English |
 
 1. Dieses Paket kopieren (oder nur den benötigten Sprachordner).
-2. Den AI-Coding-Agenten mit **`de/` oder `en/` als Arbeitsverzeichnis** öffnen
-   (nicht diesen Root).
-3. Die `README.md` in diesem Ordner befolgen und `Run STARTPROMPT.md` senden.
+2. Den AI-Coding-Agenten aus **`de/` oder `en/` als Arbeitsverzeichnis** öffnen
+3. `Run STARTPROMPT.md` senden.
 
 `LICENSE` (CC0) gilt für das gesamte Paket.
 
@@ -34,8 +33,7 @@ tools (token burn / quota waste).
 | [`en/`](en/) | English |
 
 1. Copy this package (or only the language folder you need).
-2. Open your AI coding agent with **`de/` or `en/` as the working directory**
-   (not this root).
-3. Follow that folder’s `README.md` and send `Run STARTPROMPT.md`.
+2. Open your AI coding agent in **`de/` or `en/` as the working directory**
+3. send `Run STARTPROMPT.md`.
 
 `LICENSE` (CC0) applies to the whole package.
