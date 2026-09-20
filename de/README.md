@@ -5,25 +5,33 @@ Clean-Room-Ordner für eine **read-only**-Erstprüfung lokaler AI-Coding-Tools
 
 ## Start
 
-1. Öffne deinen AI-Coding-Agenten **mit diesem Ordner (`Providercheck/de`)
-   als Arbeitsverzeichnis**.
+1. Öffne deinen AI-Coding-Agenten **mit diesem Ordner (`de/`) als
+   Arbeitsverzeichnis** (nicht den Paket-Root darüber).
 2. Sende genau:
 
 ```text
 Run STARTPROMPT.md
 ```
 
+Grok bevorzugt:
+
+```powershell
+pwsh -NoProfile -File tools/Start-CleanRoomGrok.ps1
+```
+
 Befunde landen unter `tasks/<Lauf>/evidence/`.
 
 ## Zu den lokalen Startankern
 
-Dieser Ordner liefert kurze lokale `AGENTS.md` / `CLAUDE.md` / `.grok/rules`,
-damit die Sitzung den Ordner als **neutralen Clean Room** behandeln kann.
+Dieser Ordner liefert lokale `AGENTS.md` / `CLAUDE.md` / `.grok/rules` für
+**alle Provider**, damit die Sitzung den Ordner als **neutralen Clean Room**
+behandeln kann.
 
 **Lokale Startanker hebeln userglobale Startanker nicht vollständig aus** —
-Skills und Hooks können je nach Tool weiterhin geladen werden. Was sie
-ermöglichen, ist eine **Erstprüfung**: sie drängen projektbezogene Anweisungen
-soweit zurück, dass der Audit ohne fremden Projektkontext laufen kann.
+Skills und Hooks können technisch weiter laden. Was sie ermöglichen, ist eine
+**Erstprüfung**: sie drängen projektbezogene Anweisungen zurück und sollen
+einen **Standard-Session-Start** (Resume, fremde Handoffs/Briefings) fachlich
+abbrechen.
 
 Ergebnisse sind ein Triage-Lauf, keine Garantie, dass jede globale Vorgabe
 ignoriert wurde.

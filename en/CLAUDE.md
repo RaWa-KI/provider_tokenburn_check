@@ -1,13 +1,32 @@
 # Neutral audit anchor (Claude)
 
 This folder is a **neutral-task** clean room for a one-shot toolchain audit.
-It is not a normal product workspace.
+It is **not** a normal product workspace and is **not** part of a workspace
+registry.
 
 ## Identity
 
 - Keep `session_scope: neutral-task` for the whole session.
-- Do not load foreign project handoffs, briefings, memories, or unrelated skills.
-- User-global safety rules may still apply; local files here do not fully disable them.
+- Target paths or topics in the user request do not change this identity.
+- Do not load foreign project handoffs, briefings, sidecars, plans, signals,
+  profiles, or cross-session memories.
+- User-global safety and quality rules may still apply. Local files here do
+  **not** fully disable them; they enable a **first-pass check** in a clean
+  room.
+
+## Session start (important)
+
+If Claude triggers a **default session start** (“see session”, session resume,
+handoff intake, workspace briefing, status inventory of other projects):
+
+1. Do **not** run that intake.
+2. Briefly confirm: this folder is a one-shot audit clean room
+   (`neutral-task`).
+3. Wait for `Run STARTPROMPT.md` — or run it immediately if the user already
+   asked.
+
+User-global hooks/skills may still load technically; for this run, only this
+anchor plus `STARTPROMPT.md` / `audit.yaml` govern the work.
 
 ## Work
 
@@ -18,5 +37,4 @@ It is not a normal product workspace.
 
 ## Entry
 
-If the user says to run the audit, read `STARTPROMPT.md` and execute it.
-Do not expand scope beyond `audit.yaml`.
+Read and execute `STARTPROMPT.md`. Do not expand scope beyond `audit.yaml`.
