@@ -101,9 +101,14 @@ Read-only Token-Burn- / Quota-Erstprüfung (`audit.yaml` im Ordner-Root).
 
 Jede Surface besitzt `.claude/`, `.grok/`, `.codex/` oder `.kimi-code/`
 (`session-handoff.md`, `session-tts.txt`). Keine Writes in fremde Namespaces.
+
+## Ausgabe
+
+Keine Personen, Konten, Workspace-, Produkt- oder Repo-Namen.
+Keine absoluten Pfade. Zusaetzliche MCP-Server und Plugins nur als Anzahl.
 "@
-    (Join-Path $taskRoot 'docs\README.md') = "# Task-Doku`n`nNotizen nur fuer diesen neutralen Audit-Lauf.`n"
-    (Join-Path $taskRoot 'evidence\README.md') = "# Evidenz`n`nAudit-Report und Rohnotizen hier ablegen.`n"
+    (Join-Path $taskRoot 'docs\README.md') = "# Task-Doku`n`nNotizen nur fuer diesen neutralen Audit-Lauf. Keine Personen, Projektnamen oder absoluten Pfade.`n"
+    (Join-Path $taskRoot 'evidence\README.md') = "# Evidenz`n`nAudit-Report hier ablegen. Keine Personen, Projektnamen oder absoluten Pfade.`n"
 }
 
 foreach ($providerDir in $providerDirs) {

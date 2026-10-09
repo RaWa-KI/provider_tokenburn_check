@@ -40,3 +40,10 @@ was ignored.
 - Read-only against your real tool configs (no silent edits).
 - No secrets in the report.
 - One task folder per run; each provider writes only its own handoff namespace.
+- The report names no people, no project names, and no absolute paths.
+
+## Checklist status
+
+Reviewed on 2026-10-09 against the changelogs in the documentation library:
+Claude Code 2.1.295, Codex CLI 0.162.0, Grok CLI 1.0.50, Kimi Code 2.1.1,
+OpenCode 2.0.25. That revision is `audit.yaml` (`schema_version: 2`).

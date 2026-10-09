@@ -1,42 +1,85 @@
 # Token-Burn- / Quota-Erstprüfung (read-only)
-schema_version: 1
+schema_version: 2
 id: token-burn-audit
 mode: read_only
 language: de
+reviewed: 2026-10-09
+basis: >
+  Changelogs der Doku-Datenbank, Stand 2026-10-09.
+  Kein Maschineninventar und keine lokalen Werte.
 
 intent: >
   Lokale AI-Coding-Einstellungen und Gewohnheiten finden, die über Turns
   hinweg wiederholten großen Kontext- und Cache-Read-Verbrauch verursachen
-  (Quota- / Rate-Limit-Druck).
+  (Quota- / Rate-Limit-Druck). Nur dokumentierte Keys als Katalog verwenden.
+  Ein Key, der nur in einer lebenden Datei steht, heißt im Report live-only.
 
 hard_rules:
   - no_config_edits
   - no_billing_or_account_changes
   - no_secrets_in_output
+  - no_personal_data
+  - no_workspace_product_or_repo_names
+  - no_absolute_paths_or_usernames
   - no_invented_config_keys
-  - prefer_live_files_and_official_docs
-  - use_tilde_paths_in_reports
+  - documented_key_or_live_only_label
+  - prefer_changelogs_and_live_files
+  - extra_mcp_and_plugins_as_counts
+
+output_privacy:
+  allowed_paths:
+    - ~/.claude
+    - ~/.codex
+    - ~/.grok
+    - ~/.kimi-code
+    - ~/.config/opencode
+  forbidden:
+    - drive_letters
+    - user_profile_segment
+    - project_paths
+    - emails
+    - account_ids
+    - workspace_product_or_repo_names
+    - secret_shaped_lines
+    - hashes_of_private_files
+  mcp_and_plugins: >
+    Anzahl und ob eingebaut oder zusätzlich. Keine Namen zusätzlicher
+    Server, Plugins oder Skills.
 
 tools_to_consider:
-  - claude-code
-  - codex
-  - cursor
-  - github-copilot-chat
-  - gemini-cli
-  - grok
-  - kimi-code
-  - opencode
-  - continue
-  - aider
+  - id: claude-code
+    changelog_through: "2.1.295 (2026-10-08)"
+  - id: codex
+    changelog_through: "CLI 0.162.0 (2026-10-08); Schema-Vorlage 0.157 (2026-09-25)"
+  - id: grok
+    changelog_through: "CLI 1.0.50 (2026-10-06)"
+  - id: kimi-code
+    changelog_through: "2.1.1 (2026-09-24); Config-Vorlage geprüft 2026-09-30"
+  - id: opencode
+    changelog_through: "1.18.35 (2026-10-06); 2.0.25 (2026-10-08) ohne Release-Text"
+  - id: cursor
+    changelog_through: "keine Changelog-Quelle in der Doku-Datenbank"
+  - id: github-copilot-chat
+    changelog_through: "keine Changelog-Quelle in der Doku-Datenbank"
+  - id: gemini-cli
+    changelog_through: "keine Changelog-Quelle in der Doku-Datenbank"
+  - id: continue
+    changelog_through: "keine Changelog-Quelle in der Doku-Datenbank"
+  - id: aider
+    changelog_through: "keine Changelog-Quelle in der Doku-Datenbank"
 
 heuristics:
   auto_compact_before_pct_of_window:
     warn_above: 0.80
-    target_near: 0.45
+    drift_when: >
+      Der lebende Trigger liegt über 0.80 des Fensters oder später als der
+      für dieses Tool dokumentierte Default. Ein später dokumentierter
+      Default ist kein DRIFT. Ein fehlender Prozentwert ist UNKNOWN.
   prefill_capped: true
   parallelism_capped: true
   expensive_effort_not_global_default: true
   explicit_budget_if_supported: true
+  cache_reads_not_free_when_priced: true
 
 inventory_controls:
   - auto_compaction
@@ -45,6 +88,95 @@ inventory_controls:
   - effort_or_thinking_defaults
   - run_goal_or_session_budgets
   - startup_mcp_plugins_skills
+  - dead_keys_still_set
+
+documented_controls:
+  claude-code:
+    keys:
+      - name: effortLevel
+        note: "Pro Modell. Max gilt ab 2.1.295 nur für die laufende Sitzung."
+      - name: skillListingBudgetFraction
+        note: "Settings-Doku 2026-06-11, Default 0.01. Keine spätere Settings-Doku in der Bibliothek."
+      - name: maxSkillDescriptionChars
+        note: "Settings-Doku 2026-06-11, Default 1536."
+      - name: disableBundledSkills
+        note: "Env CLAUDE_CODE_DISABLE_BUNDLED_SKILLS. Versteckt gebündelte Skills vor dem Modell."
+    env:
+      - name: CLAUDE_CODE_DISABLE_1M_CONTEXT
+        note: "1 hält 1M-Modelle auf 200k. Ab 2.1.287 auch Opus 4.7+ und Fable auf Bedrock, Vertex, Foundry und dem Apps-Gateway."
+    commands:
+      - "/autocompact speichert das Fenster ab 2.1.288 pro Modell. /autocompact 200k, wenn ein Gateway bei 200k stoppt (2.1.285)."
+      - "/context zählt ab 2.1.283 die Anweisungen der MCP-Server als eigene Zeile."
+      - "/usage ist die Quota. /context ist das Fenster. Beides getrennt lesen."
+      - "/effort. Ultracode ist ab 2.1.284 ein eigener Schalter und erzwingt nicht xhigh."
+    model_windows:
+      - "Opus 5.5 ab 2.1.280, Default, 1M, Cache-Reads 0,20 USD je Million Tokens."
+      - "Sonnet 5.5 ab 2.1.284, Default-Sonnet, 1M, Cache-Reads 0,20 USD je Million Tokens."
+      - "Haiku 5.5 ab 2.1.293, Default-Haiku, 1M. Cache-Read-Preis in diesem Changelog nicht genannt."
+  codex:
+    keys:
+      - name: project_doc_max_bytes
+        note: "Dokumentierter Default 32768. Stand Schema-Vorlage 2026-09-25 unverändert."
+      - name: project_doc_fallback_filenames
+        note: "Weitere Always-on-Dateinamen."
+      - name: model_instructions_file
+        note: "Ersetzt eingebaute Instruktionen samt AGENTS.md. Keine zweite Schicht daneben."
+      - name: agents.max_concurrent_threads_per_session
+        note: "Dokumentierte Parallelitätsbremse in der Vorlage 2026-09-25. max_threads ist kein Schlüssel dieser Vorlage."
+      - name: model_reasoning_effort
+        note: "Teure Stufen nicht als globalen Default. Ein benanntes Profil darf abweichen."
+      - name: features.guardianv2.thread_context
+        note: "Default seit CLI 0.157 true. Zusätzlicher Kontext bei Reviews."
+      - name: cloud.skills.enabled
+        note: "Neu in 0.157. orchestrator.skills wirkt nicht mehr."
+      - name: features.context_management.experimental_mode
+        note: "Optional. Nur aufnehmen, wenn die lebende Datei den Schlüssel enthält."
+    changelog_without_key_name:
+      - "CLI 0.158 macht Budgets für MCP- und Code-Mode-Input-Schemas einstellbar. Key-Name nicht im Changelog-Satz. Nur aufnehmen, wenn die lebende Datei ein Budget-Feld zeigt, und dann live-only."
+      - "CLI 0.157 lädt Cloud-Skills beim Turn-Start nach. CLI 0.158 kürzt Compaction, wenn das Modell gleich bleibt."
+  grok:
+    keys: []
+    notes:
+      - "CLI 1.0.44 bis 1.0.50 nennen keinen Prozent-Default für Auto-Compact."
+      - "compact_mode ist die Anzeige (Recaps und Dock). Das ist nicht der Compaction-Trigger."
+      - "/context zeigt ab 1.0.50 eine Auto-Compact-Schwelle nur, wenn der Agent sie meldet. Eine fehlende Zahl ist kein Beleg, dass Compaction aus ist."
+      - "Ein bloßes /model lässt die Effort-Stufe stehen (1.0.50)."
+      - "Hooks PreCompact und PostCompact existieren. Rules haben offiziell kein Größenlimit."
+      - "Eine Compact-Schwelle in der lebenden Config ist live-only. DRIFT erst über 0.80."
+  kimi-code:
+    keys:
+      - name: models.max_context_size
+        note: "Pflicht am Modell. Beispiel in der Vorlage 262144. Kein erfundener Default."
+      - name: merge_all_available_skills
+        note: "Steuert, ob alle Skills in den Start kommen."
+      - name: extra_skill_dirs
+        note: "Zusätzliche Skill-Ordner sind Prefill."
+      - name: loop_control.reserved_context_size
+        note: "Reservierter Kontext."
+      - name: loop_control.max_attempts_per_step
+        note: "Wiederholungsbremse. max_retries_per_step ist deprecated."
+      - name: loop_control.max_steps_per_turn
+        note: "max_steps_per_run ist deprecated."
+      - name: loop_control.compaction_max_attempts
+        note: "Default 5. Gesamtversuche einer fehlschlagenden Kompaktion inklusive Erstversuch."
+      - name: watch.enabled
+        note: "2.1.0 stellte die Beobachtung aus, 2.1.1 wieder an. Aus ist enabled false oder KIMI_CODE_WATCH=0. An lädt Config, AGENTS.md, Skills und MCP live nach."
+    removed_do_not_set:
+      - context_management
+      - reasoning_details
+    deprecated:
+      - default_thinking
+      - thinking.mode
+      - loop_control.max_retries_per_step
+      - loop_control.max_steps_per_run
+    absent_from_docs:
+      - "compaction_trigger_ratio steht nicht in der Config-Vorlage. Wenn die lebende Datei ihn hat, live-only."
+  opencode:
+    keys: []
+    notes:
+      - "Öffentlicher Changelog endet bei 1.18.35. 2.0.19 bis 2.0.25 haben keinen Release-Text."
+      - "1.18.33 angleicht Gemini-Thinking und Effort an die vom Modell unterstützten Stufen. Kein neuer Config-Key im Satz."
+      - "Keine compaction-Keys aus älteren Läufen fortschreiben. Lebende Keys nur als live-only."
 
 root_causes:
   prefill_and_startup:
@@ -52,31 +184,41 @@ root_causes:
     - duplicate_always_on_policies
     - huge_skill_plugin_mcp_catalog_prefill
     - many_enabled_mcp_servers
+    - mcp_instructions_counted_in_context
+    - cloud_skills_refreshed_each_turn
   session_behavior:
     - long_lived_sessions_without_reset
     - high_tool_loop_density_large_outputs
     - repeated_full_file_or_doc_reads
     - subagent_swarms_rebuilding_fat_context
     - no_manual_compact_or_new_session
+    - compaction_failed_or_restored_context_dropped
   model_and_provider_traps:
     - huge_context_without_early_compaction
+    - million_context_default
     - mid_session_model_or_effort_switch_breaks_cache
     - max_context_model_with_late_compaction_default
     - thinking_left_high_for_routine_edits
+    - subagent_effort_above_parent
+    - cache_reads_treated_as_free
   tooling_and_automation:
     - background_agents_or_watchers_still_spending
     - unbounded_retries_or_smoke_loops
     - full_web_or_doc_fetches_pasted_into_chat
+    - dead_keys_still_set
   measurement_gaps:
     - context_pct_confused_with_quota_balance
     - cache_reads_treated_as_free
     - no_session_signals_checked
+    - compact_mode_confused_with_compaction_trigger
 
 report_required:
   - executive_summary
-  - controls_table  # tool, control, live, heuristic, status, evidence
+  - controls_table
   - root_causes_yes_or_unknown
   - top_5_fixes_recommendations_only
+  - documented_vs_live_only
+  - privacy_self_check
   - not_verified
 
 status_enum: [OK, DRIFT, UNKNOWN, N/A]

@@ -42,3 +42,11 @@ ignoriert wurde.
 - Keine Secrets im Report.
 - Ein Task-Ordner pro Lauf; jede Provider-Surface schreibt nur in ihren
   eigenen Handoff-Namespace.
+- Der Report nennt keine Personen, keine Projektnamen und keine absoluten
+  Pfade.
+
+## Stand der Checkliste
+
+Geprüft am 2026-10-09 gegen die Changelogs in der Doku-Datenbank:
+Claude Code 2.1.295, Codex CLI 0.162.0, Grok CLI 1.0.50, Kimi Code 2.1.1,
+OpenCode 2.0.25. Die Fassung steht in `audit.yaml` (`schema_version: 2`).

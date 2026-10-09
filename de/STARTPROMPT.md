@@ -10,4 +10,13 @@ Read-only. Führe `audit.yaml` in diesem Ordner-Root aus.
 4. Nur den eigenen Provider-Handoff unter dem Task aktualisieren
    (`.claude/` / `.grok/` / `.codex/` / `.kimi-code/`).
 
-Keine Config-Edits. Keine Billing-Änderungen. Keine Secrets in der Ausgabe.
+Keine Config-Edits. Keine Billing-Änderungen.
+
+Ausgabe:
+
+- Keine Personen, Konten, Workspace-, Produkt- oder Repo-Namen.
+- Keine absoluten Pfade und kein Benutzername im Pfad.
+- Nur die Standard-Homes der Tools in Tilde-Form, wie `audit.yaml` sie nennt.
+- Zusätzliche MCP-Server, Plugins und Skills nur als Anzahl.
+- Keinen Config-Key erfinden. Fehlt er in `documented_controls`, im Report
+  als `live-only` markieren.

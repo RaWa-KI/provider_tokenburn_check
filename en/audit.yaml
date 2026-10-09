@@ -1,41 +1,85 @@
 # Token-burn / quota first-pass audit (read-only)
-schema_version: 1
+schema_version: 2
 id: token-burn-audit
 mode: read_only
 language: en
+reviewed: 2026-10-09
+basis: >
+  Documentation-library changelogs as of 2026-10-09.
+  No machine inventory and no local values.
 
 intent: >
   Find local AI-coding settings and habits that cause repeated large context
-  and cache-read burn across turns (quota / rate-limit pressure).
+  and cache-read burn across turns (quota / rate-limit pressure). Use
+  documented keys as the catalog. A key that appears only in a live file is
+  labeled live-only in the report.
 
 hard_rules:
   - no_config_edits
   - no_billing_or_account_changes
   - no_secrets_in_output
+  - no_personal_data
+  - no_workspace_product_or_repo_names
+  - no_absolute_paths_or_usernames
   - no_invented_config_keys
-  - prefer_live_files_and_official_docs
-  - use_tilde_paths_in_reports
+  - documented_key_or_live_only_label
+  - prefer_changelogs_and_live_files
+  - extra_mcp_and_plugins_as_counts
+
+output_privacy:
+  allowed_paths:
+    - ~/.claude
+    - ~/.codex
+    - ~/.grok
+    - ~/.kimi-code
+    - ~/.config/opencode
+  forbidden:
+    - drive_letters
+    - user_profile_segment
+    - project_paths
+    - emails
+    - account_ids
+    - workspace_product_or_repo_names
+    - secret_shaped_lines
+    - hashes_of_private_files
+  mcp_and_plugins: >
+    Count them, and say whether they are built in or extra. Do not name
+    extra servers, plugins, or skills.
 
 tools_to_consider:
-  - claude-code
-  - codex
-  - cursor
-  - github-copilot-chat
-  - gemini-cli
-  - grok
-  - kimi-code
-  - opencode
-  - continue
-  - aider
+  - id: claude-code
+    changelog_through: "2.1.295 (2026-10-08)"
+  - id: codex
+    changelog_through: "CLI 0.162.0 (2026-10-08); schema template 0.157 (2026-09-25)"
+  - id: grok
+    changelog_through: "CLI 1.0.50 (2026-10-06)"
+  - id: kimi-code
+    changelog_through: "2.1.1 (2026-09-24); config template reviewed 2026-09-30"
+  - id: opencode
+    changelog_through: "1.18.35 (2026-10-06); 2.0.25 (2026-10-08) has no release text"
+  - id: cursor
+    changelog_through: "no changelog source in the documentation library"
+  - id: github-copilot-chat
+    changelog_through: "no changelog source in the documentation library"
+  - id: gemini-cli
+    changelog_through: "no changelog source in the documentation library"
+  - id: continue
+    changelog_through: "no changelog source in the documentation library"
+  - id: aider
+    changelog_through: "no changelog source in the documentation library"
 
 heuristics:
   auto_compact_before_pct_of_window:
     warn_above: 0.80
-    target_near: 0.45
+    drift_when: >
+      The live trigger is above 0.80 of the window, or later than the
+      default documented for that tool. A later documented default is not
+      DRIFT. A missing percent is UNKNOWN.
   prefill_capped: true
   parallelism_capped: true
   expensive_effort_not_global_default: true
   explicit_budget_if_supported: true
+  cache_reads_not_free_when_priced: true
 
 inventory_controls:
   - auto_compaction
@@ -44,6 +88,95 @@ inventory_controls:
   - effort_or_thinking_defaults
   - run_goal_or_session_budgets
   - startup_mcp_plugins_skills
+  - dead_keys_still_set
+
+documented_controls:
+  claude-code:
+    keys:
+      - name: effortLevel
+        note: "Per model. From 2.1.295, max applies to the current session only."
+      - name: skillListingBudgetFraction
+        note: "Settings doc 2026-06-11, default 0.01. No later settings doc in the library."
+      - name: maxSkillDescriptionChars
+        note: "Settings doc 2026-06-11, default 1536."
+      - name: disableBundledSkills
+        note: "Env CLAUDE_CODE_DISABLE_BUNDLED_SKILLS. Hides bundled skills from the model."
+    env:
+      - name: CLAUDE_CODE_DISABLE_1M_CONTEXT
+        note: "1 keeps 1M models at 200k. From 2.1.287 this also covers Opus 4.7+ and Fable on Bedrock, Vertex, Foundry, and the apps gateway."
+    commands:
+      - "/autocompact stores the window per model from 2.1.288. Use /autocompact 200k when a gateway stops at 200k (2.1.285)."
+      - "/context counts MCP server instructions as their own row from 2.1.283."
+      - "/usage is quota. /context is the window. Read them separately."
+      - "/effort. From 2.1.284 Ultracode is its own toggle and does not force xhigh."
+    model_windows:
+      - "Opus 5.5 from 2.1.280, default, 1M, cache reads 0.20 USD per million tokens."
+      - "Sonnet 5.5 from 2.1.284, default Sonnet, 1M, cache reads 0.20 USD per million tokens."
+      - "Haiku 5.5 from 2.1.293, default Haiku, 1M. This changelog does not name a cache-read price."
+  codex:
+    keys:
+      - name: project_doc_max_bytes
+        note: "Documented default 32768. Unchanged in the 2026-09-25 schema template."
+      - name: project_doc_fallback_filenames
+        note: "Extra always-on filenames."
+      - name: model_instructions_file
+        note: "Replaces built-in instructions, including AGENTS.md. It is not a second layer."
+      - name: agents.max_concurrent_threads_per_session
+        note: "Documented parallelism cap in the 2026-09-25 template. max_threads is not a key in that template."
+      - name: model_reasoning_effort
+        note: "Expensive levels are not a global default. A named profile may differ."
+      - name: features.guardianv2.thread_context
+        note: "Default true since CLI 0.157. Extra context on reviews."
+      - name: cloud.skills.enabled
+        note: "New in 0.157. orchestrator.skills no longer does anything."
+      - name: features.context_management.experimental_mode
+        note: "Optional. Record it only when the live file contains the key."
+    changelog_without_key_name:
+      - "CLI 0.158 makes MCP and Code Mode input-schema budgets configurable. The changelog sentence does not name the key. Record it only when the live file shows a budget field, and label it live-only."
+      - "CLI 0.157 refreshes cloud skills at turn start. CLI 0.158 shortens compaction when the model stays the same."
+  grok:
+    keys: []
+    notes:
+      - "CLI 1.0.44 through 1.0.50 do not name a percent default for auto-compact."
+      - "compact_mode is display (recaps and dock). It is not the compaction trigger."
+      - "From 1.0.50, /context shows an auto-compact threshold only when the agent reports one. A missing number does not prove compaction is off."
+      - "A bare /model keeps the effort level (1.0.50)."
+      - "PreCompact and PostCompact hooks exist. Rules have no official size cap."
+      - "A compact threshold in the live config is live-only. DRIFT only above 0.80."
+  kimi-code:
+    keys:
+      - name: models.max_context_size
+        note: "Required on the model. The template example is 262144. Do not invent a default."
+      - name: merge_all_available_skills
+        note: "Controls whether every skill is loaded at startup."
+      - name: extra_skill_dirs
+        note: "Extra skill directories are prefill."
+      - name: loop_control.reserved_context_size
+        note: "Reserved context."
+      - name: loop_control.max_attempts_per_step
+        note: "Retry cap. max_retries_per_step is deprecated."
+      - name: loop_control.max_steps_per_turn
+        note: "max_steps_per_run is deprecated."
+      - name: loop_control.compaction_max_attempts
+        note: "Default 5. Total tries of a failing compaction, including the first try."
+      - name: watch.enabled
+        note: "2.1.0 turned watching off, 2.1.1 turned it on again. Off is enabled false or KIMI_CODE_WATCH=0. On reloads config, AGENTS.md, skills, and MCP live."
+    removed_do_not_set:
+      - context_management
+      - reasoning_details
+    deprecated:
+      - default_thinking
+      - thinking.mode
+      - loop_control.max_retries_per_step
+      - loop_control.max_steps_per_run
+    absent_from_docs:
+      - "compaction_trigger_ratio is not in the config template. If the live file has it, label it live-only."
+  opencode:
+    keys: []
+    notes:
+      - "The public changelog ends at 1.18.35. Versions 2.0.19 through 2.0.25 have no release text."
+      - "1.18.33 aligns Gemini thinking and effort with the levels the model supports. The sentence names no new config key."
+      - "Do not carry compaction keys forward from older runs. Live keys are live-only."
 
 root_causes:
   prefill_and_startup:
@@ -51,31 +184,41 @@ root_causes:
     - duplicate_always_on_policies
     - huge_skill_plugin_mcp_catalog_prefill
     - many_enabled_mcp_servers
+    - mcp_instructions_counted_in_context
+    - cloud_skills_refreshed_each_turn
   session_behavior:
     - long_lived_sessions_without_reset
     - high_tool_loop_density_large_outputs
     - repeated_full_file_or_doc_reads
     - subagent_swarms_rebuilding_fat_context
     - no_manual_compact_or_new_session
+    - compaction_failed_or_restored_context_dropped
   model_and_provider_traps:
     - huge_context_without_early_compaction
+    - million_context_default
     - mid_session_model_or_effort_switch_breaks_cache
     - max_context_model_with_late_compaction_default
     - thinking_left_high_for_routine_edits
+    - subagent_effort_above_parent
+    - cache_reads_treated_as_free
   tooling_and_automation:
     - background_agents_or_watchers_still_spending
     - unbounded_retries_or_smoke_loops
     - full_web_or_doc_fetches_pasted_into_chat
+    - dead_keys_still_set
   measurement_gaps:
     - context_pct_confused_with_quota_balance
     - cache_reads_treated_as_free
     - no_session_signals_checked
+    - compact_mode_confused_with_compaction_trigger
 
 report_required:
   - executive_summary
-  - controls_table  # tool, control, live, heuristic, status, evidence
+  - controls_table
   - root_causes_yes_or_unknown
   - top_5_fixes_recommendations_only
+  - documented_vs_live_only
+  - privacy_self_check
   - not_verified
 
 status_enum: [OK, DRIFT, UNKNOWN, N/A]

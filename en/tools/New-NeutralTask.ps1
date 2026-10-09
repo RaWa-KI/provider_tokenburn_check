@@ -101,9 +101,14 @@ Read-only token-burn / quota first-pass audit (`audit.yaml` at repo root).
 
 Each surface owns `.claude/`, `.grok/`, `.codex/`, or `.kimi-code/`
 (`session-handoff.md`, `session-tts.txt`). No cross-namespace writes.
+
+## Output
+
+No people, accounts, workspace names, product names, or repo names.
+No absolute paths. Extra MCP servers and plugins as counts only.
 "@
-    (Join-Path $taskRoot 'docs\README.md') = "# Task docs`n`nNotes for this neutral audit run only.`n"
-    (Join-Path $taskRoot 'evidence\README.md') = "# Evidence`n`nPut the audit report and raw notes here.`n"
+    (Join-Path $taskRoot 'docs\README.md') = "# Task docs`n`nNotes for this neutral audit run only. No people, project names, or absolute paths.`n"
+    (Join-Path $taskRoot 'evidence\README.md') = "# Evidence`n`nPut the audit report here. No people, project names, or absolute paths.`n"
 }
 
 foreach ($providerDir in $providerDirs) {
